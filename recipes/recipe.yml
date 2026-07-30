@@ -16,7 +16,6 @@ modules:
     repos:
       copr:
         - atim/starship
-        - papirus/papirus-icon-theme
     install:
       packages:
         # Shell & Utility

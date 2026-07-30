@@ -1,45 +1,51 @@
----
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 # image will be published to ghcr.io/<user>/<name>
 name: tokimekios-pc
-# description will be included in the image's metadata
-description: This is my personal OS image.
+description: Proof of concept TokimekiOS PC environment based on Fedora Atomic 44 (KDE Kinoite)
 
-# the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/silverblue-main
-image-version: 42 # latest is also supported if you want new updates ASAP
+base-image: ghcr.io/ublue-os/kinoite-main
+image-version: 44 
 
-# module configuration, executed in order
-# you can include multiple instances of the same module
 modules:
   - type: files
     files:
       - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
+        destination: / # Copies files/system/* into root / (branding, plasma configs, theme overrides)
 
   - type: dnf
     repos:
       copr:
         - atim/starship
+        - papirus/papirus-icon-theme
     install:
       packages:
+        # Shell & Utility
         - micro
         - starship
+        - fastfetch
+        - zsh
+        # Tokimeki Liquid Glass / UI Essentials
+        - kvantum                  # SVG-based theme engine for full blur/translucency support
+        - kvantum-qt5
+        - papirus-icon-theme        # Clean modern vector icons
+        - plasma-workspace-wallpapers
     remove:
       packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
         - firefox
-        - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
+        - firefox-langpacks
 
   - type: default-flatpaks
     configurations:
-      - notify: true # Send notification after install/uninstall is finished (true/false)
+      - notify: true
         scope: system
-        # If no repo information is specified, Flathub will be used by default
-        install: # system flatpaks we want all users to have and not remove
+        install:
           - org.mozilla.firefox
-          - org.gnome.Loupe
-      - scope: user # Also add Flathub user repo, but no user packages
+          - org.kde.gwenview      # KDE native image viewer (fits Plasma better than Loupe)
+          - org.kde.ark           # Archiving utility
+      - scope: user
 
-  - type: signing # this sets up the proper policy & signing files for signed images to work fully
+  - type: script
+    scripts:
+      - setup-tokimeki-ui.sh      # Custom script for compiling themes or setting defaults
+
+  - type: signing
